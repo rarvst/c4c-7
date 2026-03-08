@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String  @id @default(cuid())
+  employee_id      String  @unique
+  display_name     String
+  email            String
+  manager_id       String?
+  is_manager       Boolean @default(false)
+  
+  // Relations
+  manager          User?   @relation("UserToManager", fields: [manager_id], references: [id])
+  direct_reports   User[]  @relation("UserToManager")
+  equipment        Equipment[]
+}
+
+model Equipment {
+  id                      String @id @default(cuid())
+  asset_tag               String @unique
+  serial                  String
+  model                   String
+  assigned_to_employee_id String?
+  
+  // Relations
+  assigned_to             User?  @relation(fields: [assigned_to_employee_id], references: [employee_id])
+}
+
+model CollectionEvent {
+  id                               String    @id @default(cuid())
+  asset_tag                        String
+  employee_id                      String
+  status                           String    // 'COLLECTED_PENDING_IT', 'CLOSED_OUT'
+  marked_collected_at              DateTime  @default(now())
+  marked_collected_by_manager_id   String
+  notes                            String?
+  closed_out_at                    DateTime?
+  closed_out_by_it_id              String?
+}
